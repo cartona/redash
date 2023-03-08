@@ -36,18 +36,18 @@ def create_google_oauth_blueprint(app):
     logger = logging.getLogger("google_oauth")
     blueprint = Blueprint("google_oauth", __name__)
 
-    CONF_URL = "https://accounts.google.com/.well-known/openid-configuration"
+    CONF_URL = "https://oidc.sso.cartona.com/.well-known/openid-configuration"
     oauth = OAuth(app)
     oauth.register(
         name="google",
         server_metadata_url=CONF_URL,
-        client_kwargs={"scope": "openid email profile"},
+        client_kwargs={"scope": "openid offline"},
     )
 
     def get_user_profile(access_token):
         headers = {"Authorization": "OAuth {}".format(access_token)}
         response = requests.get(
-            "https://www.googleapis.com/oauth2/v1/userinfo", headers=headers
+            "https://oidc.sso.cartona.com/userinfo", headers=headers
         )
 
         if response.status_code == 401:
