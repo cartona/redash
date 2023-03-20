@@ -97,7 +97,7 @@ def create(
     """
     print("Creating user (%s, %s) in organization %s..." % (email, name, organization))
     print("Admin: %r" % is_admin)
-    print("Login with Google Auth: %r\n" % google_auth)
+    print("Login with Cartona Auth: %r\n" % google_auth)
 
     org = models.Organization.get_by_slug(organization)
     groups = build_groups(org, groups, is_admin)
@@ -147,7 +147,7 @@ def create_root(email, name, google_auth=False, password=None, organization="def
         "Creating root user (%s, %s) in organization %s..."
         % (email, name, organization)
     )
-    print("Login with Google Auth: %r\n" % google_auth)
+    print("Login with Cartona Auth: %r\n" % google_auth)
 
     user = models.User.query.filter(models.User.email == email).first()
     if user is not None:
