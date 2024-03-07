@@ -1,3 +1,5 @@
+import datetime
+import os
 import signal
 import time
 import redis
@@ -174,7 +176,35 @@ class QueryExecutor(object):
             # Load existing tracker or create a new one if the job was created before code update:
             models.scheduled_queries_executions.update(self.query_model.id)
 
+    def get_latest_executed_query(self, minutes):
+        cls = models.QueryResult
+
+        query = cls.query.filter(
+            cls.query_hash == self.query_hash,
+            cls.data_source == self.data_source,
+            (
+                models.db.func.timezone("utc", cls.retrieved_at)
+                + datetime.timedelta(seconds=minutes * 60)
+                >= models.db.func.timezone("utc", models.db.func.now())
+            ),
+        )
+
+        return query.order_by(cls.retrieved_at.desc()).first()
+
     def run(self):
+        latest_executed_query = self.get_latest_executed_query(
+            os.environ.get("CARTONA_QUERY_RUNNER_CACHING_WINDOW_MINUTES", 1)
+        )
+
+        if latest_executed_query is not None:
+            logger.info(
+                "job=get_latest_executed_query query_hash=%s ds_id=%d query_result_id=%d",
+                self.query_hash,
+                self.data_source_id,
+                latest_executed_query.id,
+            )
+            return latest_executed_query.id
+
         signal.signal(signal.SIGINT, signal_handler)
         started_at = time.time()
 
