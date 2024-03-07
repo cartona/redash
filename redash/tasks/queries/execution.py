@@ -177,6 +177,9 @@ class QueryExecutor(object):
             models.scheduled_queries_executions.update(self.query_model.id)
 
     def get_latest_executed_query(self, minutes):
+        if minutes < 1:
+            return None
+
         cls = models.QueryResult
 
         query = cls.query.filter(
@@ -193,7 +196,7 @@ class QueryExecutor(object):
 
     def run(self):
         latest_executed_query = self.get_latest_executed_query(
-            os.environ.get("CARTONA_QUERY_RUNNER_CACHING_WINDOW_MINUTES", 1)
+            os.environ.get("CARTONA_QUERY_RUNNER_CACHING_WINDOW_MINUTES", 0)
         )
 
         if latest_executed_query is not None:
