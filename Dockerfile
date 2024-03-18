@@ -58,7 +58,7 @@ RUN apt-get update && \
     libsasl2-dev \
     unzip \
     libsasl2-modules-gssapi-mit && \
-  # MSSQL ODBC Driver:  
+  # MSSQL ODBC Driver:
   curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - && \
   curl https://packages.microsoft.com/config/debian/10/prod.list > /etc/apt/sources.list.d/mssql-release.list && \
   apt-get update && \
@@ -85,14 +85,17 @@ ENV PIP_NO_CACHE_DIR=1
 RUN pip install pip==20.2.4;
 
 # We first copy only the requirements file, to avoid rebuilding on every file change.
-COPY requirements_all_ds.txt ./
-RUN if [ "x$skip_ds_deps" = "x" ] ; then pip install -r requirements_all_ds.txt ; else echo "Skipping pip install -r requirements_all_ds.txt" ; fi
+#COPY requirements_all_ds.txt ./
+#RUN if [ "x$skip_ds_deps" = "x" ] ; then pip install -r requirements_all_ds.txt ; else echo "Skipping pip install -r requirements_all_ds.txt" ; fi
+#
+#COPY requirements_bundles.txt requirements_dev.txt ./
+#RUN if [ "x$skip_dev_deps" = "x" ] ; then pip install -r requirements_dev.txt ; fi
+#
+#COPY requirements.txt ./
+#RUN pip install -r requirements.txt
 
-COPY requirements_bundles.txt requirements_dev.txt ./
-RUN if [ "x$skip_dev_deps" = "x" ] ; then pip install -r requirements_dev.txt ; fi
-
-COPY requirements.txt ./
-RUN pip install -r requirements.txt
+COPY requirements_production_freezed.txt ./
+RUN pip install -r requirements_production_freezed.txt
 
 COPY . /app
 COPY --from=frontend-builder /frontend/client/dist /app/client/dist
