@@ -195,18 +195,24 @@ class QueryExecutor(object):
         return query.order_by(cls.retrieved_at.desc()).first()
 
     def run(self):
-        latest_executed_query = self.get_latest_executed_query(
-            os.environ.get("CARTONA_QUERY_RUNNER_CACHING_WINDOW_MINUTES", 0)
-        )
-
-        if latest_executed_query is not None:
-            logger.info(
-                "job=get_latest_executed_query query_hash=%s ds_id=%d query_result_id=%d",
-                self.query_hash,
-                self.data_source_id,
-                latest_executed_query.id,
+        try:
+            latest_executed_query = self.get_latest_executed_query(
+                int(os.environ.get("CARTONA_QUERY_RUNNER_CACHING_WINDOW_MINUTES", 0))
             )
-            return latest_executed_query.id
+
+            if latest_executed_query is not None:
+                logger.info(
+                    "job=get_latest_executed_query query_hash=%s ds_id=%d query_result_id=%d",
+                    self.query_hash,
+                    self.data_source_id,
+                    latest_executed_query.id,
+                )
+                return latest_executed_query.id
+        except Exception as e:
+            logger.warning(
+                "[CartonaCachingPatch] Unexpected error while fetching result from cache: {}".format(str(e)),
+                exc_info=1
+            )
 
         signal.signal(signal.SIGINT, signal_handler)
         started_at = time.time()
